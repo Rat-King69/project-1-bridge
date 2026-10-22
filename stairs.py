@@ -9,24 +9,27 @@ class StairsWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Stairs")
-        self.setMinimumSize(300, 200)
+        self.setMinimumSize(500, 300)
 
+        layout = contorl_widget.layout()
 
-#creation of mash based on selection 
+        self.button = QtWidgets.QPushButton('create', self)
+        self.button.clicked.connect(self.create_mash_network)
 
-def create_mash_network(name="Stairs"):
-    #Create a MASH network from the currently selected object.
-    sel = cmds.ls(selection=True)
+        #creation of mash based on selection 
+    def create_mash_network(self, name="Stairs"):
+        #Create a MASH network from the currently selected object.
+        sel = cmds.ls(selection=True)
 
-    network = mapi.Network()
-    network.createNetwork(name=name)
-    return network
+        network = mapi.Network()
+        network.createNetwork(name=name)
+        return network
 
 #maybe cange to linear to radial selection must rotate selected object for radial
 
 
 #input of number of points
-
+    def update_Number_obj
 
 #distance modifier for x and y
 
