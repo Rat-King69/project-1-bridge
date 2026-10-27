@@ -16,14 +16,29 @@ class StairsWindow(QtWidgets.QWidget):
         self.create_button = QtWidgets.QPushButton("Create")
         self.create_button.clicked.connect(self.create_mash_network)
         
-        self.line_edit = QtWidgets.QLabel()
-        self.line_edit = QtWidgets.QLineEdit("enter a number here number of objects")
-        self.update_button = QtWidgets.QPushButton("update")
-        self.update_button.clicked.connect(self.update_Number_obj)
+        self.obj_edit = QtWidgets.QLabel()
+        self.obj_edit = QtWidgets.QLineEdit("enter a number here number of objects")
+        self.update_obj = QtWidgets.QPushButton("update")
+        self.update_obj.clicked.connect(self.update_Number_obj)
+
+        self.dis_edit_x = QtWidgets.QLabel()
+        self.dis_edit_x = QtWidgets.QLineEdit("enter a number here number for x offset")
+        self.dis_edit_y = QtWidgets.QLabel()
+        self.dis_edit_y = QtWidgets.QLineEdit("enter a number here number for y offset")
+        self.update_dis_x = QtWidgets.QPushButton("update_x")
+        self.update_dis_x.clicked.connect(self.update_distance_x)
+
+        self.update_dis_y = QtWidgets.QPushButton("update_y")
+        self.update_dis_y.clicked.connect(self.update_distance_y)
+
         
         layout.addWidget(self.create_button)
-        layout.addWidget(self.line_edit)
-        layout.addWidget(self.update_button)
+        layout.addWidget(self.obj_edit)
+        layout.addWidget(self.update_obj)
+        layout.addWidget(self.dis_edit_x)
+        layout.addWidget(self.dis_edit_y)
+        layout.addWidget(self.update_dis_x)
+        layout.addWidget(self.update_dis_y)
         layout.addStretch()
 
         #creation of mash based on selection 
@@ -38,15 +53,20 @@ class StairsWindow(QtWidgets.QWidget):
             #input of number of points
     def update_Number_obj(self):
         #update number of points
-        count = int(self.line_edit.text())
-        cmds.setAttr(self.network.distribute + ".pointCount", count)
-
-
-
-
+        pnt_count = int(self.obj_edit.text())
+        cmds.setAttr(self.network.distribute + ".pointCount", pnt_count)
 
 
             #distance modifier for x and y
+    def update_distance_x(self):
+        dis_count_x = int(self.dis_edit_x.text())
+        cmds.setAttr(self.network.distribute + ".amplitudeX", dis_count_x)
+
+
+    def update_distance_y(self):
+        dis_count_y = int(self.dis_edit_y.text())
+        cmds.setAttr(self.network.distribute + ".amplitudeY", dis_count_y)
+
 
             #scale input
 
