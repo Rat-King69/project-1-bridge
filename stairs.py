@@ -31,6 +31,12 @@ class StairsWindow(QtWidgets.QWidget):
         self.update_dis_y = QtWidgets.QPushButton("update_y")
         self.update_dis_y.clicked.connect(self.update_distance_y)
 
+        self.dis_edit_z = QtWidgets.QLabel()
+        self.dis_edit_z = QtWidgets.QLineEdit("enter a number here number for z offset")
+
+        self.update_dis_z = QtWidgets.QPushButton("update_z")
+        self.update_dis_z.clicked.connect(self.update_offset_z)
+
         
         layout.addWidget(self.create_button)
         layout.addWidget(self.obj_edit)
@@ -39,6 +45,8 @@ class StairsWindow(QtWidgets.QWidget):
         layout.addWidget(self.dis_edit_y)
         layout.addWidget(self.update_dis_x)
         layout.addWidget(self.update_dis_y)
+        layout.addWidget(self.dis_edit_z)
+        layout.addWidget(self.update_dis_z)
         layout.addStretch()
 
         #creation of mash based on selection 
@@ -70,11 +78,17 @@ class StairsWindow(QtWidgets.QWidget):
 
             #scale input
 
+            #offset of z
+    def update_offset_z(self):
+        dis_count_z = int(self.dis_edit_z.text())
+        cmds.setAttr(self.network.distribute + ".amplitudeZ", dis_count_z)
+
+
             #rotate input
 
 
-            #offset of z
 
+        
 
 
 
