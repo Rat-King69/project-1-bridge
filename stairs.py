@@ -17,14 +17,14 @@ class StairsWindow(QtWidgets.QWidget):
         self.create_button.clicked.connect(self.create_mash_network)
         
         self.obj_edit = QtWidgets.QLabel()
-        self.obj_edit = QtWidgets.QLineEdit("enter a number here number of objects")
+        self.obj_edit = QtWidgets.QLineEdit("enter a number here of objects")
         self.update_obj = QtWidgets.QPushButton("update")
         self.update_obj.clicked.connect(self.update_Number_obj)
 
         self.dis_edit_x = QtWidgets.QLabel()
-        self.dis_edit_x = QtWidgets.QLineEdit("enter a number here number for x offset")
+        self.dis_edit_x = QtWidgets.QLineEdit("enter a number here for x offset")
         self.dis_edit_y = QtWidgets.QLabel()
-        self.dis_edit_y = QtWidgets.QLineEdit("enter a number here number for y offset")
+        self.dis_edit_y = QtWidgets.QLineEdit("enter a number here for y offset")
         self.update_dis_x = QtWidgets.QPushButton("update_x")
         self.update_dis_x.clicked.connect(self.update_distance_x)
 
@@ -32,13 +32,13 @@ class StairsWindow(QtWidgets.QWidget):
         self.update_dis_y.clicked.connect(self.update_distance_y)
 
         self.dis_edit_z = QtWidgets.QLabel()
-        self.dis_edit_z = QtWidgets.QLineEdit("enter a number here number for z offset")
+        self.dis_edit_z = QtWidgets.QLineEdit("enter a number here for z offset")
 
         self.update_dis_z = QtWidgets.QPushButton("update_z")
         self.update_dis_z.clicked.connect(self.update_offset_z)
 
         self.rot_edit_y = QtWidgets.QLabel()
-        self.rot_edit_y = QtWidgets.QLineEdit("enter a number here number for y rotate")
+        self.rot_edit_y = QtWidgets.QLineEdit("enter a number here for y rotate")
 
         self.update_rot_y = QtWidgets.QPushButton("update_y")
         self.update_rot_y.clicked.connect(self.update_rotate_y)
