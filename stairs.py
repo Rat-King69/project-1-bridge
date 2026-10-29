@@ -37,6 +37,12 @@ class StairsWindow(QtWidgets.QWidget):
         self.update_dis_z = QtWidgets.QPushButton("update_z")
         self.update_dis_z.clicked.connect(self.update_offset_z)
 
+        self.rot_edit_y = QtWidgets.QLabel()
+        self.rot_edit_y = QtWidgets.QLineEdit("enter a number here number for y rotate")
+
+        self.update_rot_y = QtWidgets.QPushButton("update_y")
+        self.update_rot_y.clicked.connect(self.update_rotate_y)
+
         
         layout.addWidget(self.create_button)
         layout.addWidget(self.obj_edit)
@@ -47,6 +53,8 @@ class StairsWindow(QtWidgets.QWidget):
         layout.addWidget(self.update_dis_y)
         layout.addWidget(self.dis_edit_z)
         layout.addWidget(self.update_dis_z)
+        layout.addWidget(self.rot_edit_y)
+        layout.addWidget(self.update_rot_y)
         layout.addStretch()
 
         #creation of mash based on selection 
@@ -85,7 +93,9 @@ class StairsWindow(QtWidgets.QWidget):
 
 
             #rotate input
-
+    def update_rotate_y(self):
+        rot_rotate_y = int(self.rot_edit_y.text())
+        cmds.setAttr(self.network.distribute + ".rotateY", rot_rotate_y)
 
 
         
