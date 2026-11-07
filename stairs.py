@@ -11,10 +11,24 @@ class StairsWindow(QtWidgets.QWidget):
         self.setWindowTitle("Stairs")
         self.setMinimumSize(500, 300)
 
+        # all networks made in this window, by name
+        self.networks = {}
+
         layout = QtWidgets.QVBoxLayout(self)
 
         self.create_button = QtWidgets.QPushButton("Create")
         self.create_button.clicked.connect(self.create_mash_network)
+
+        # choose which network(s) the update buttons affect
+        self.network_box = QtWidgets.QComboBox()
+        self.network_box.addItem("All")
+
+        # regular buttons that flip the visibility of the left and right banisters
+        self.toggle_l = QtWidgets.QPushButton("L")
+        self.toggle_l.clicked.connect(lambda checked=False: self.toggle_banister("L"))
+
+        self.toggle_r = QtWidgets.QPushButton("R")
+        self.toggle_r.clicked.connect(lambda checked=False: self.toggle_banister("R"))
         
         self.obj_edit = QtWidgets.QLabel()
         self.obj_edit = QtWidgets.QLineEdit("enter a number here of objects")
@@ -25,11 +39,8 @@ class StairsWindow(QtWidgets.QWidget):
         self.dis_edit_x = QtWidgets.QLineEdit("enter a number here for x offset")
         self.dis_edit_y = QtWidgets.QLabel()
         self.dis_edit_y = QtWidgets.QLineEdit("enter a number here for y offset")
-        self.update_dis_x = QtWidgets.QPushButton("update_x")
-        self.update_dis_x.clicked.connect(self.update_distance_x)
-
-        self.update_dis_y = QtWidgets.QPushButton("update_y")
-        self.update_dis_y.clicked.connect(self.update_distance_y)
+        self.update_dis = QtWidgets.QPushButton("update_offset")
+        self.update_dis.clicked.connect(self.update_distance)
 
         self.dis_edit_z = QtWidgets.QLabel()
         self.dis_edit_z = QtWidgets.QLineEdit("enter a number here for z offset")
@@ -40,48 +51,89 @@ class StairsWindow(QtWidgets.QWidget):
         self.rot_edit_y = QtWidgets.QLabel()
         self.rot_edit_y = QtWidgets.QLineEdit("enter a number here for y rotate")
 
-        self.update_rot_y = QtWidgets.QPushButton("update_y")
+        self.update_rot_y = QtWidgets.QPushButton("update_rot_y")
         self.update_rot_y.clicked.connect(self.update_rotate_y)
 
-        
+        # x and y offset fields share one row
+        dis_row = QtWidgets.QHBoxLayout()
+        dis_row.addWidget(self.dis_edit_x)
+        dis_row.addWidget(self.dis_edit_y)
+
+        # L and R buttons share one row
+        toggle_row = QtWidgets.QHBoxLayout()
+        toggle_row.addWidget(self.toggle_l)
+        toggle_row.addWidget(self.toggle_r)
+
         layout.addWidget(self.create_button)
+        layout.addWidget(self.network_box)
+        layout.addLayout(toggle_row)
         layout.addWidget(self.obj_edit)
         layout.addWidget(self.update_obj)
-        layout.addWidget(self.dis_edit_x)
-        layout.addWidget(self.dis_edit_y)
-        layout.addWidget(self.update_dis_x)
-        layout.addWidget(self.update_dis_y)
+        layout.addLayout(dis_row)
+        layout.addWidget(self.update_dis)
         layout.addWidget(self.dis_edit_z)
         layout.addWidget(self.update_dis_z)
         layout.addWidget(self.rot_edit_y)
         layout.addWidget(self.update_rot_y)
         layout.addStretch()
 
-        #creation of mash based on selection 
-    def create_mash_network(self, name="Stairs"):
-        #Create a MASH network from the currently selected object.
-        self.network = mapi.Network()
-        self.network.createNetwork(name="Stairs")
+        #creation of mash based on selection, one network per selected object
+    def create_mash_network(self):
+        selection = cmds.ls(selection=True)
+        if not selection:
+            cmds.warning("Select an object first.")
+            return
 
-            #maybe cange to linear to radial selection must rotate selected object for radial
+        for obj in selection:
+            # skip MASH networks that are already selected
+            if cmds.nodeType(obj) == "MASH_Waiter":
+                continue
+
+            # short name of the object (drops any |group|path)
+            name = obj.split("|")[-1]
+
+            # createNetwork uses the current selection, so select just this object
+            cmds.select(obj, replace=True)
+
+            network = mapi.Network()
+            network.createNetwork(name=name)
+
+            self.networks[name] = network
+            self.network_box.addItem(name)
+
+        # put the selection back how it was
+        cmds.select(selection, replace=True)
+
+    def toggle_banister(self, side):
+        # flip the visibility of the banister_L / banister_R ReproMesh objects
+        for mesh in cmds.ls("banister_" + side + "*_ReproMesh", type="transform"):
+            is_visible = cmds.getAttr(mesh + ".visibility")
+            cmds.setAttr(mesh + ".visibility", not is_visible)
+
+    def get_targets(self):
+        # every network if "All" is picked, otherwise just the chosen one
+        choice = self.network_box.currentText()
+        if choice == "All":
+            return list(self.networks.values())
+        return [self.networks[choice]]
+
 
 
             #input of number of points
     def update_Number_obj(self):
         #update number of points
         pnt_count = int(self.obj_edit.text())
-        cmds.setAttr(self.network.distribute + ".pointCount", pnt_count)
+        for network in self.get_targets():
+            cmds.setAttr(network.distribute + ".pointCount", pnt_count)
 
 
             #distance modifier for x and y
-    def update_distance_x(self):
+    def update_distance(self):
         dis_count_x = int(self.dis_edit_x.text())
-        cmds.setAttr(self.network.distribute + ".amplitudeX", dis_count_x)
-
-
-    def update_distance_y(self):
         dis_count_y = int(self.dis_edit_y.text())
-        cmds.setAttr(self.network.distribute + ".amplitudeY", dis_count_y)
+        for network in self.get_targets():
+            cmds.setAttr(network.distribute + ".amplitudeX", dis_count_x)
+            cmds.setAttr(network.distribute + ".amplitudeY", dis_count_y)
 
 
             #scale input
@@ -89,21 +141,20 @@ class StairsWindow(QtWidgets.QWidget):
             #offset of z
     def update_offset_z(self):
         dis_count_z = int(self.dis_edit_z.text())
-        cmds.setAttr(self.network.distribute + ".amplitudeZ", dis_count_z)
+        for network in self.get_targets():
+            cmds.setAttr(network.distribute + ".amplitudeZ", dis_count_z)
 
 
             #rotate input
     def update_rotate_y(self):
         rot_rotate_y = int(self.rot_edit_y.text())
-        cmds.setAttr(self.network.distribute + ".rotateY", rot_rotate_y)
+        for network in self.get_targets():
+            cmds.setAttr(network.distribute + ".rotateY", rot_rotate_y)
 
 
-        
 
 
 
 
 win = StairsWindow()
 win.show()
-
-
