@@ -1,13 +1,17 @@
 from PySide6 import QtWidgets, QtCore, QtGui
+from shiboken6 import wrapInstance
+import maya.OpenMayaUI as omui
 import MASH.api as mapi
 import maya.cmds as cmds
-
 
 
 #get window working with connections later
 class StairsWindow(QtWidgets.QWidget):
     def __init__(self):
-        super().__init__()
+
+        main_window = wrapInstance(int(omui.MQtUtil.mainWindow()), QtWidgets.QWidget)
+        super().__init__(main_window)
+        self.setWindowFlags(QtCore.Qt.Window)
         self.setWindowTitle("Stairs")
         self.setMinimumSize(500, 300)
 
@@ -16,8 +20,11 @@ class StairsWindow(QtWidgets.QWidget):
 
         layout = QtWidgets.QVBoxLayout(self)
 
-        self.create_button = QtWidgets.QPushButton("Create")
+        self.create_button = QtWidgets.QPushButton("Create Linear")
         self.create_button.clicked.connect(self.create_mash_network)
+
+        self.create_spiral_button = QtWidgets.QPushButton("Create Spiral")
+        self.create_spiral_button.clicked.connect(self.create_spiral_network)
 
         # choose which network(s) the update buttons affect
         self.network_box = QtWidgets.QComboBox()
@@ -54,6 +61,11 @@ class StairsWindow(QtWidgets.QWidget):
         self.update_rot_y = QtWidgets.QPushButton("update_rot_y")
         self.update_rot_y.clicked.connect(self.update_rotate_y)
 
+        # create buttons share one row
+        create_row = QtWidgets.QHBoxLayout()
+        create_row.addWidget(self.create_button)
+        create_row.addWidget(self.create_spiral_button)
+
         # x and y offset fields share one row
         dis_row = QtWidgets.QHBoxLayout()
         dis_row.addWidget(self.dis_edit_x)
@@ -64,7 +76,7 @@ class StairsWindow(QtWidgets.QWidget):
         toggle_row.addWidget(self.toggle_l)
         toggle_row.addWidget(self.toggle_r)
 
-        layout.addWidget(self.create_button)
+        layout.addLayout(create_row)
         layout.addWidget(self.network_box)
         layout.addLayout(toggle_row)
         layout.addWidget(self.obj_edit)
@@ -77,7 +89,7 @@ class StairsWindow(QtWidgets.QWidget):
         layout.addWidget(self.update_rot_y)
         layout.addStretch()
 
-        #creation of mash based on selection, one network per selected object
+        #creation of a linear mash network, one per selected object
     def create_mash_network(self):
         selection = cmds.ls(selection=True)
         if not selection:
@@ -102,6 +114,39 @@ class StairsWindow(QtWidgets.QWidget):
             self.network_box.addItem(name)
 
         # put the selection back how it was
+        cmds.select(selection, replace=True)
+
+        #creation of a mash network set to radial with the radial axis on zx
+    def create_spiral_network(self):
+        selection = cmds.ls(selection=True)
+        if not selection:
+            cmds.warning("Select an object first.")
+            return
+
+        for obj in selection:
+            # skip MASH networks that are already selected
+            if cmds.nodeType(obj) == "MASH_Waiter":
+                continue
+
+            name = obj.split("|")[-1]
+
+            # rotate the object 90 in x before it goes into the radial network
+            cmds.rotate(90, 0, 0, obj, relative=True)
+
+            cmds.select(obj, replace=True)
+
+            network = mapi.Network()
+            network.createNetwork(name=name)
+
+            self.networks[name] = network
+            self.network_box.addItem(name)
+
+            # distribution type: 1 = linear, 2 = radial
+            cmds.setAttr(network.distribute + ".arrangement", 2)
+
+            # radial axis: 3 = zx
+            cmds.setAttr(network.distribute + ".modelAxis", 3)
+
         cmds.select(selection, replace=True)
 
     def toggle_banister(self, side):
@@ -150,10 +195,6 @@ class StairsWindow(QtWidgets.QWidget):
         rot_rotate_y = int(self.rot_edit_y.text())
         for network in self.get_targets():
             cmds.setAttr(network.distribute + ".rotateY", rot_rotate_y)
-
-
-
-
 
 
 win = StairsWindow()
